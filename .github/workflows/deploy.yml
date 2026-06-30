@@ -1,0 +1,27 @@
+name: Deploy Portfolio to EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd ~/portfolio/ec2-portfolio-cicd || git clone https://github.com/Outlaw-Gypsy/ec2-portfolio-cicd.git ~/portfolio/ec2-portfolio-cicd
+            cd ~/portfolio/ec2-portfolio-cicd
+            git pull origin main
+            sudo cp -r html/* /var/www/html/
+            sudo systemctl restart nginx
